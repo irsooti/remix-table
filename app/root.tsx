@@ -1,6 +1,7 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
 import {
+  Link,
   Links,
   LiveReload,
   Meta,
@@ -18,8 +19,6 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
-  const error = useRouteError();
-
   return (
     <html lang="en">
       <head>
@@ -29,20 +28,41 @@ export default function App() {
         <Links />
       </head>
       <body>
-        {isRouteErrorResponse(error) && error.status === 404 ? (
-          <div className="hero min-h-screen bg-base-200">
-            <div className="hero-content text-center">
-              <div className="max-w-md">
-                <h1 className="text-5xl font-bold">😑</h1>
-                <p className="py-6">you're lost</p>
-              </div>
-            </div>
-          </div>
-        ) : null}
         <Outlet />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+      </body>
+    </html>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return (
+    <html>
+      <head>
+        <title>Oops!</title>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <div className="hero min-h-screen bg-base-200">
+          <div className="hero-content text-center">
+            <div className="max-w-md">
+              <h1 className="text-5xl font-bold">🏚️ Oof</h1>
+              <p className="py-6">
+                {isRouteErrorResponse(error)
+                  ? `${error.status} ${error.statusText}`
+                  : error instanceof Error
+                  ? error.message
+                  : "Unknown Error"}
+              </p>
+              <Link className="link" to="/">Go home</Link>
+            </div>
+          </div>
+        </div>
+        <Scripts />
       </body>
     </html>
   );
