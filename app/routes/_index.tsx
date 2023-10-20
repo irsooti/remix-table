@@ -10,14 +10,14 @@ import { userSchema } from "~/utils/validation";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Remixtable" },
+    { name: "description", content: "A simple application to show how to use Remix" },
   ];
 };
 
 const texts = {
   title: "Remixtable",
-  description: "A simple application to show how to use Remix.",
+  description: "Search a github username to see his repositories",
   button: "Get Started",
 };
 
@@ -72,7 +72,7 @@ export default function Index() {
               <input
                 name="id"
                 type="text"
-                placeholder="Type here"
+                placeholder="Github username"
                 className="input input-bordered w-full max-w-xs"
               />
               <button type="submit" className="btn btn-primary">
