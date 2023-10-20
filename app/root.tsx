@@ -7,6 +7,8 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  isRouteErrorResponse,
+  useRouteError,
 } from "@remix-run/react";
 import styles from "./tailwind.css";
 
@@ -16,6 +18,8 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
+  const error = useRouteError();
+
   return (
     <html lang="en">
       <head>
@@ -25,6 +29,16 @@ export default function App() {
         <Links />
       </head>
       <body>
+        {isRouteErrorResponse(error) && error.status === 404 ? (
+          <div className="hero min-h-screen bg-base-200">
+            <div className="hero-content text-center">
+              <div className="max-w-md">
+                <h1 className="text-5xl font-bold">😑</h1>
+                <p className="py-6">you're lost</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
         <Outlet />
         <ScrollRestoration />
         <Scripts />

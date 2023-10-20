@@ -5,16 +5,20 @@ import { getUserById } from "~/utils/oktokit.server";
 import { userSchema } from "~/utils/validation";
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const user = userSchema.parse({ id: params.user });
-  const { data } = await getUserById(user.id);
+  try {
+    const user = userSchema.parse({ id: params.user });
+    const { data } = await getUserById(user.id);
 
-  return json({
-    avatar: data.avatar_url,
-    name: data.name,
-    followers: data.followers,
-    following: data.following,
-    bio: data.bio,
-  });
+    return json({
+      avatar: data.avatar_url,
+      name: data.name,
+      followers: data.followers,
+      following: data.following,
+      bio: data.bio,
+    });
+  } catch (error) {
+    throw new Response(null, { status: 404, statusText: "User not found" });
+  }
 };
 
 export default function Repositories() {
@@ -72,9 +76,6 @@ export default function Repositories() {
           </li>
           <li>
             <NavLink to="repositories">Repositories</NavLink>
-          </li>
-          <li>
-            <NavLink to="detail">Detail</NavLink>
           </li>
         </ul>
       </div>
