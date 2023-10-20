@@ -10,12 +10,12 @@ import {
   useLoaderData,
   useRouteError,
 } from "@remix-run/react";
-import { octokit } from "~/utils/oktokit.server";
 import { z } from "zod";
+import { createIssue, getIssues } from "~/utils/oktokit.server";
 import { issueLoaderSchema } from "~/utils/validation";
 
 const issueActionSchema = z.object({
-  title: z.string(),
+  title: z.string().min(1),
   body: z.string().min(3),
 });
 
@@ -25,7 +25,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     id: params.user,
   });
 
-  const issues = await octokit.rest.issues.listForRepo({
+  const issues = await getIssues({
     owner: id,
     repo: idRepo,
   });
@@ -46,12 +46,26 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   });
   const formData = await request.formData();
 
-  const data = issueActionSchema.parse({
+  const validation = issueActionSchema.safeParse({
     title: formData.get("title"),
     body: formData.get("body"),
   });
 
-  await octokit.rest.issues.create({
+  if (!validation.success) {
+    return json(
+      {
+        errors: {
+          title: validation.error.formErrors.fieldErrors.title,
+          body: validation.error.formErrors.fieldErrors.body,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  const { data } = validation;
+
+  await createIssue({
     owner: id,
     repo: idRepo,
     title: data.title,
@@ -76,20 +90,46 @@ export default function Issues() {
               <span className="label-text">Issue title</span>
             </label>
             <input
-              defaultValue={actionData?.title}
               type="text"
               placeholder="Type here"
-              className="input input-bordered w-full max-w-xs"
+              className={`input input-bordered w-full max-w-xs  ${
+                actionData &&
+                "errors" in actionData &&
+                "title" in actionData.errors
+                  ? "input-error"
+                  : ""
+              }`}
               name="title"
             />
+            <label className="label">
+              <span className="label-text-alt">
+                {actionData && "errors" in actionData
+                  ? actionData.errors.title
+                  : ""}
+              </span>
+            </label>
+          </div>
+          <div className="form-control w-full ">
+            <textarea
+              name="body"
+              className={`textarea textarea-bordered w-full ${
+                actionData &&
+                "errors" in actionData &&
+                "body" in actionData.errors
+                  ? "input-error"
+                  : ""
+              }`}
+              placeholder="Describe your issue"
+            ></textarea>
+            <label className="label">
+              <span className="label-text-alt">
+                {actionData && "errors" in actionData
+                  ? actionData.errors.body
+                  : ""}
+              </span>
+            </label>
           </div>
 
-          <textarea
-            name="body"
-            className="textarea textarea-bordered w-full"
-            placeholder="Describe your issue"
-            defaultValue={actionData?.body}
-          ></textarea>
           <button type="submit" className="btn btn-primary">
             Submit
           </button>
